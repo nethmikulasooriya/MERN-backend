@@ -7,7 +7,7 @@ import Student from "../models/student.js";
         res.status(500).json({ error: err.message });
     })
 }
-
+//test
  export function saveStudent (req, res) {
     console.log(req.body);
 
