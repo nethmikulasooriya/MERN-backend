@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 import studentRouter from './routes/studentRouter.js';
 import productRouter from './routes/productRouter.js'; // Import the productRouter
 import userRouter from './routes/userRouter.js'; // Import the userRouter
-//import Student from "../models/student.js";
+import orderRouter from './routes/orderRouter.js'; // Import the orderRouter
 import jwt from 'jsonwebtoken';
 
 let app = express();    
@@ -35,8 +35,6 @@ app.use((req, res, next) => {
     }
 });
 
-
-
 // Connect to MongoDB
 mongoose.connect('mongodb://admin:123@ac-2mcbn27-shard-00-00.ddj6re8.mongodb.net:27017,ac-2mcbn27-shard-00-01.ddj6re8.mongodb.net:27017,ac-2mcbn27-shard-00-02.ddj6re8.mongodb.net:27017/test?ssl=true&replicaSet=atlas-382o7k-shard-0&authSource=admin&appName=Cluster0')
 .then(() => {
@@ -49,7 +47,8 @@ mongoose.connect('mongodb://admin:123@ac-2mcbn27-shard-00-00.ddj6re8.mongodb.net
 // Routes
 app.use('/students', studentRouter);
 app.use('/products', productRouter); 
-app.use('/users', userRouter); // Add this line to use the userRouter
+app.use('/users', userRouter); 
+app.use('/orders', orderRouter); 
 
 // Start Server
 app.listen(5000, () => {
