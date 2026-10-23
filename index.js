@@ -6,11 +6,13 @@ import productRouter from './routes/productRouter.js'; // Import the productRout
 import userRouter from './routes/userRouter.js'; // Import the userRouter
 import orderRouter from './routes/orderRouter.js'; // Import the orderRouter
 import jwt from 'jsonwebtoken';
+import cors from 'cors';
 
 let app = express();    
- 
-// Middleware to parse JSON
-app.use(bodyParser.json());
+
+app.use(cors()); // Enable CORS for all routes
+app.use(bodyParser.json());// Middleware to parse JSON
+
 
 app.use((req, res, next) => {
     const tokenString = req.header('authorization');
