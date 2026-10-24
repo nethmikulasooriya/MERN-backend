@@ -7,6 +7,8 @@ import userRouter from './routes/userRouter.js'; // Import the userRouter
 import orderRouter from './routes/orderRouter.js'; // Import the orderRouter
 import jwt from 'jsonwebtoken';
 import cors from 'cors';
+import dotenv from 'dotenv';
+dotenv.config();
 
 let app = express();    
 
@@ -38,7 +40,7 @@ app.use((req, res, next) => {
 });
 
 // Connect to MongoDB
-mongoose.connect('mongodb://admin:123@ac-2mcbn27-shard-00-00.ddj6re8.mongodb.net:27017,ac-2mcbn27-shard-00-01.ddj6re8.mongodb.net:27017,ac-2mcbn27-shard-00-02.ddj6re8.mongodb.net:27017/test?ssl=true&replicaSet=atlas-382o7k-shard-0&authSource=admin&appName=Cluster0')
+mongoose.connect(process.env.MONGODB_URL)
 .then(() => {
     console.log('Connected to MongoDB');
 })
