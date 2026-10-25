@@ -1,6 +1,8 @@
 import User from '../models/user.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
+dotenv.config();
 
 export function createUser(req, res) {
     // Admin කෙනෙක් create කරන්න හදනවා නම් පමණක් request එක එවපු කෙනා Admin ද කියා පරික්ෂා කරයි
@@ -115,7 +117,7 @@ export function loginUser(req, res) {
                     role: user.role,
                     img: user.img 
                 },
-                "abc@123"
+                process.env.JWT_KEY
             );
 
             res.json({
