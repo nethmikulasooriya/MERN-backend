@@ -49,10 +49,10 @@ mongoose.connect(process.env.MONGODB_URL)
 });
 
 // Routes
-app.use('/students', studentRouter);
-app.use('/products', productRouter); 
-app.use('/users', userRouter); 
-app.use('/orders', orderRouter); 
+app.use('/api/students', studentRouter);
+app.use('/api/products', productRouter); 
+app.use('/api/users', userRouter); 
+app.use('/api/orders', orderRouter); 
 
 // Start Server
 app.listen(5000, () => {
