@@ -114,24 +114,36 @@ export async function createOrder(req, res) {
 
 export async function getOrders(req, res) {
   if (req.user == null) {
-    res.status(403).json({
+    return res.status(403).json({
       message: "Please login and try again",
     });
-    return;
+  }
+
+  const page = Number.parseInt(req.params.page, 10);
+  const limit = Number.parseInt(req.params.limit, 10);
+
+  if (!Number.isInteger(page) || page < 1 || !Number.isInteger(limit) || limit < 1) {
+    return res.status(400).json({
+      message: "Page and limit must be positive integers",
+    });
   }
 
   try {
-    if (req.user.role == "admin") {
-      const orders = await Order.find();
-      res.json(orders);
-    } else {
-      const orders = await Order.find({ email: req.user.email });
-      res.json(orders);
-    }
+    const filter = req.user.role === "admin" ? {} : { email: req.user.email };
+    const totalOrders = await Order.countDocuments(filter);
+    const orders = await Order.find(filter)
+      .sort({ date: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    return res.json({
+      orders,
+      totalPages: Math.ceil(totalOrders / limit),
+    });
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
       message: "Failed to fetch orders",
-      error: err,
+      error: err.message || err,
     });
   }
 }
