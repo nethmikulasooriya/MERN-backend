@@ -2,6 +2,7 @@ import User from '../models/user.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+import axios from 'axios';
 dotenv.config();
 
 export function createUser(req, res) {
@@ -137,6 +138,78 @@ export function loginUser(req, res) {
             error: err.message
         });
     });
+}
+
+export async function loginWithGoogle(req, res) {
+    const token = req.body.accessToken;
+
+    if (!token) {
+        return res.status(400).json({
+            message: "Access token is required"
+        });
+    }
+
+    try {
+        const response = await axios.get(
+            "https://www.googleapis.com/oauth2/v3/userinfo",
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+
+        const googleUser = response.data;
+        const email = googleUser.email ? googleUser.email.trim().toLowerCase() : "";
+
+        if (!email) {
+            return res.status(400).json({
+                message: "Google account email is required"
+            });
+        }
+
+        let user = await User.findOne({ email });
+
+        if (user == null) {
+            const randomPassword = bcrypt.hashSync(
+                `${googleUser.sub}-${Date.now()}`,
+                10
+            );
+
+            user = new User({
+                firstName: googleUser.given_name || googleUser.name || "Google",
+                lastName: googleUser.family_name || "User",
+                email,
+                password: randomPassword,
+                role: "customer",
+                img: googleUser.picture
+            });
+
+            await user.save();
+        }
+
+        const authToken = jwt.sign(
+            {
+                email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                role: user.role,
+                img: user.img
+            },
+            process.env.JWT_KEY
+        );
+
+        return res.json({
+            message: "Login successful",
+            token: authToken,
+            user
+        });
+    } catch (err) {
+        return res.status(401).json({
+            message: "Google login failed",
+            error: err.response?.data || err.message
+        });
+    }
 }
 
 export function isAdmin(req) {
