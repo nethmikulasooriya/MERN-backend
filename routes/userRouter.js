@@ -2,11 +2,15 @@ import express from 'express';
 import { createUser } from '../controllers/userController.js';
 import { loginUser } from '../controllers/userController.js';
 import { loginWithGoogle } from '../controllers/userController.js';
+import { sendOTP } from '../controllers/userController.js';
+import { resetPassword } from '../controllers/userController.js';
 
 const userRouter = express.Router();
 
 userRouter.post('/', createUser);
 userRouter.post('/login', loginUser); // Add this line to handle login requests
 userRouter.post('/login/google', loginWithGoogle);
+userRouter.post('/send-otp', sendOTP);
+userRouter.post('/reset-password', resetPassword);
 
 export default userRouter;
