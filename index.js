@@ -39,14 +39,19 @@ app.use((req, res, next) => {
     }
 });
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URL)
-.then(() => {
-    console.log('Connected to MongoDB');
-})
-.catch((err) => {
-    console.error('Error connecting to MongoDB:', err);
-});
+async function startServer() {
+    try {
+        await mongoose.connect(process.env.MONGODB_URL);
+        console.log('Connected to MongoDB');
+
+        app.listen(5000, () => {
+            console.log('Server is running on port 5000');
+        });
+    } catch (err) {
+        console.error('Error connecting to MongoDB:', err);
+        process.exitCode = 1;
+    }
+}
 
 // Routes
 app.use('/api/students', studentRouter);
@@ -54,7 +59,4 @@ app.use('/api/products', productRouter);
 app.use('/api/users', userRouter); 
 app.use('/api/orders', orderRouter); 
 
-// Start Server
-app.listen(5000, () => {
-    console.log('Server is running on port 5000');
-});
+startServer();
