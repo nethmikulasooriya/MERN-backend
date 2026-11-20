@@ -249,13 +249,12 @@ export async function sendOTP(req, res) {
         }
 
         const otp = randomInt(100000, 1000000).toString();
-        const otpHash = await bcrypt.hash(otp, 10);
         await OTP.findOneAndUpdate(
             { email },
             {
                 $set: {
-                    otpHash,
-                    expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+                    otp: Number(otp),
+                    createdAt: new Date(),
                     attempts: 0,
                 },
             },
@@ -275,7 +274,7 @@ export async function sendOTP(req, res) {
             });
         } catch (error) {
             try {
-                await OTP.deleteOne({ email, otpHash });
+                await OTP.deleteOne({ email, otp: Number(otp) });
             } catch (cleanupError) {
                 console.error("Failed to remove OTP after email delivery failure:", cleanupError);
             }
@@ -323,13 +322,13 @@ export async function resetPassword(req, res) {
             });
         }
 
-        const otpRecord = await OTP.findOne({ email }).select("+otpHash");
+        const otpRecord = await OTP.findOne({ email });
+        const otpExpiry = () => new Date(Date.now() - 10 * 60 * 1000);
 
         if (
             otpRecord == null ||
-            !otpRecord.otpHash ||
-            !otpRecord.expiresAt ||
-            otpRecord.expiresAt <= new Date() ||
+            !otpRecord.createdAt ||
+            otpRecord.createdAt <= otpExpiry() ||
             otpRecord.attempts >= 5
         ) {
             return res.status(400).json({
@@ -337,13 +336,13 @@ export async function resetPassword(req, res) {
             });
         }
 
-        const otpMatches = await bcrypt.compare(otp, otpRecord.otpHash);
+        const otpMatches = Number(otp) === otpRecord.otp;
         if (!otpMatches) {
             await OTP.updateOne(
                 {
                     _id: otpRecord._id,
-                    otpHash: otpRecord.otpHash,
-                    expiresAt: { $gt: new Date() },
+                    otp: otpRecord.otp,
+                    createdAt: { $gt: otpExpiry() },
                     attempts: { $lt: 5 },
                 },
                 {
@@ -360,8 +359,8 @@ export async function resetPassword(req, res) {
         const consumedOTP = await OTP.findOneAndDelete(
             {
                 _id: otpRecord._id,
-                otpHash: otpRecord.otpHash,
-                expiresAt: { $gt: new Date() },
+                otp: otpRecord.otp,
+                createdAt: { $gt: otpExpiry() },
                 attempts: { $lt: 5 },
             }
         );
