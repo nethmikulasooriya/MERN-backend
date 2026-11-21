@@ -125,3 +125,29 @@ export async function getProductById(req, res) {
         });
     }
 }
+
+export async function searchProducts(req, res) {
+    const searchQuery = typeof req.query.query === "string" ? req.query.query.trim() : "";
+    const escapedQuery = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+    const filter = {
+        $or: [
+            { name: { $regex: escapedQuery, $options: "i" } },
+            { altNames: { $elemMatch: { $regex: escapedQuery, $options: "i" } } }
+        ]
+    };
+
+    if (!isAdmin(req)) {
+        filter.isAvailable = true;
+    }
+
+    try {
+        const products = await Product.find(filter);
+        res.json(products);
+    } catch (err) {
+        res.status(500).json({
+            message: "Failed to search products",
+            error: err.message || err
+        });
+    }
+}
